@@ -14,7 +14,9 @@ class Community extends AbstractEntity
      */
     protected $properties = [
         'id' => null,
-        'name' => 0,
+        'logo' => null,
+        'image' => null,
+        'name' => null,
         'projects' => [],
     ];
 }

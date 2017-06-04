@@ -12,57 +12,55 @@ use Goutte\Client;
 class HttpClient implements ProviderInterface
 {
     /**
-     * @var array[]
-     */
-    private $_config = [
-        'https://dev.bukkit.org' => ['bukkit-plugins'],
-        'https://minecraft.curseforge.com' => [
-            'modpacks',
-            'cusomization',
-            'addons',
-            'mods',
-            'texture-packs',
-            'worlds',
-        ],
-        'https://www.feed-the-beast.com' => ['mod-packs'],
-        'https://www.wowace.com' => ['addons'],
-        'https://wow.curseforge.com' => ['addons'],
-        'https://wildstar.curseforge.com' => ['ws-addons'],
-        'https://kerbal.curseforge.com' => ['mods', 'shareables'],
-        'https://worldoftanks.curseforge.com' => ['mods', 'skins'],
-        'https://www.sc2mapster.com' => ['assets', 'maps'],
-        'https://www.skyrimforge.com' => ['mods'],
-        'https://teso.curseforge.com' => ['addons'],
-        'https://rift.curseforge.com' => ['addons'],
-        'https://rom.curseforge.com' => ['addons'],
-        'https://tsw.curseforge.com' => ['mods'],
-        'https://terraria.curseforge.com' => ['maps'],
-    ];
-
-    /**
      * @inheritdoc
      */
     public function getIterator()
     {
-        $communities = $this->_config;
-        array_walk($communities, function(&$community, $communityId) {
-            $projects = array_map(function($projectId) {
-                return new Model\Project([
-                    'id' => $projectId,
-                    'name' => function(Model\Project $project) {
-                        return "name {$project->id}";
-                    }
-                ]);
-            }, $community);
-            $community = new Model\Community(['id' => $communityId, 'projects' => $projects]);
-        });
+        $communities = $this->_get('//curseforge.com')
+            ->filter('.author-our-communties ul > li > a')
+            ->each(
+                function(Crawler $node) {
+                    return $this->_community($node);
+                }
+            );
 
         return new \ArrayObject($communities);
-//        $client = new Client();
-//        $nodes = $client->request('GET', 'https://mods.curse.com/mc-mods/minecraft?filter-project-game-version=&filter-project-sort=3');
-//        $content = $nodes->filter('ul.group')->each(function(Crawler $node) {
-//            return $node->text();
-//        });
+    }
+
+    /**
+     * @param Crawler $node
+     *
+     * @return Model\Community
+     */
+    private function _community(Crawler $node)
+    {
+        $attributes = [
+            'id' => $node->attr('href'),
+            'logo' => $node->filter('.community-logo')->image()->getUri(),
+            'image' => $node->filter('.community-bg')->image()->getUri(),
+            'name' => function (Model\Community $community) {
+                return trim(
+                    str_ireplace(
+                        'CurseForge',
+                        null,
+                        $this->_get($community->id)->filter('title')->text()
+                    )
+                );
+            },
+        ];
+
+        return new Model\Community($attributes);
+    }
+
+    /**
+     * @param $uri
+     * @param array $params
+     * @return Crawler
+     */
+    private function _get($uri, array $params = [])
+    {
+        $client = new Client();
+        return $client->request('GET', $uri, $params);
     }
 
     /**
