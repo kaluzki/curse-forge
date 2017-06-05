@@ -30,11 +30,15 @@ abstract class AbstractEntity implements \JsonSerializable
      */
     public function jsonSerialize()
     {
-        $properties = $this->properties;
-        array_walk($properties, function(&$property, $name) {
-            $property = $this->$name;
-        });
-        return $properties;
+        try {
+            $properties = $this->properties;
+            array_walk($properties, function(&$property, $name) {
+                $property = $this->$name;
+            });
+            return $properties;
+        } catch (\Exception $ignore) {
+            return false;
+        }
     }
 
     /**
