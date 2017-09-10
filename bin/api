@@ -1,0 +1,6 @@
+#!/usr/bin/env php
+<?php
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+call_user_func(new kaluzki\CurseForge\Console\Api());
