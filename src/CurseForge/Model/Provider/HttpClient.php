@@ -77,7 +77,7 @@ class HttpClient implements ProviderInterface
     {
         $page = $this->_get("{$community->id}/projects");
 
-        if (end(explode('/', $page->getUri())) != 'projects') {
+        if (end(explode('/', $page->getUri())) !== 'projects') {
             return [$page->getUri()];
         }
 
@@ -128,8 +128,8 @@ class HttpClient implements ProviderInterface
     }
 
     /**
-     * @param $uri
-     * @param array $params
+     * @param string $uri
+     * @param mixed $params
      * @return Crawler
      */
     private function _get($uri, array $params = [])
