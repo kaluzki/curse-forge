@@ -4,6 +4,7 @@ namespace kaluzki\CurseForge\Console;
 
 use kaluzki\CurseForge\Model;
 use Symfony\Component\Console;
+use fn;
 
 /**
  */
@@ -16,38 +17,39 @@ class Api extends Console\Application
     {
         parent::__construct('curse-forge api', '0.1');
 
-        $this->_add('communities', 'get all curse communities', function() {
-            return new Model\Provider\HttpClient();
-        });
+        $this->_add('communities', 'get all curse communities', new Model\Provider\HttpClient);
     }
 
     /**
-     * @inheritdoc
+     * @return int
+     * @throws \Exception
      */
-    public function __invoke($input = null)
+    public function __invoke()
     {
-        if ($input !== null) {
-            $input = (array)$input;
-            array_unshift($input, $this->getName());
-            $input = new Console\Input\ArgvInput($input);
-        }
-        return $this->run($input);
+        $args = func_get_args();
+        array_unshift($args, $this->getName());
+        return $this->run(new Console\Input\ArgvInput($args));
     }
 
     /**
      * @param string $name
      * @param string $description
-     * @param callable $code
+     * @param iterable|callable $candidate
      */
-    private function _add($name, $description, callable $code)
+    private function _add($name, $description, $candidate)
     {
-        $this->add(new Console\Command\Command($name))
-            ->setDescription($description)
-            ->setCode(function(Console\Input\InputInterface $in, Console\Output\OutputInterface $out) use(&$code) {
-                $lines = ($lines = call_user_func($code, $in, $out)) instanceof \Traversable ? $lines : (array) $lines;
-                foreach ($lines as $line) {
-                    $out->writeln((string) $line);
-                }
-            });
+        if ($command = $this->add(new Console\Command\Command($name))) {
+            $command
+                ->setDescription($description)
+                ->setCode(function (
+                    Console\Input\InputInterface $in,
+                    Console\Output\OutputInterface $out
+                ) use (&$candidate) {
+                    $candidate = is_callable($candidate) ? $candidate($in, $out) : $candidate;
+                    fn\map($candidate, function($line) use($out) {
+                        $out->writeln((string)$line);
+                    }, true);
+                });
+        }
     }
 }
