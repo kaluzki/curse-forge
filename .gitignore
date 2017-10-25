@@ -1,5 +1,9 @@
 /*
 !/bin/
+!/config/
+!/docs/
+!/public/
+!/resources/
 !/src/
 !/tests/
 !/.gitignore

@@ -16,6 +16,7 @@
     "phpio/spl": "dev-master",
     "php-fn/php-fn": "dev-master",
     "symfony/console": "^3",
+    "doctrine/migrations": "^1",
     "fabpot/goutte": "^3"
   },
   "require-dev": {

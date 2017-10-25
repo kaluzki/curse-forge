@@ -1,0 +1,4 @@
+name: curse-forge database migrations
+migrations_namespace: kaluzki\CurseForge\Setup
+table_name: versions
+migrations_directory: ../src/CurseForge/Setup
